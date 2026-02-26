@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,43 +8,45 @@ datasource db {
 }
 
 model Property {
-  id             String   @id @default(cuid())
-  externalId     String?  @unique
-  source         String   @default("local")
-  latitude       Float
-  longitude      Float
-  price          Int
-  address        String
-  city           String
-  county         String?
-  state          String
-  zip            String
-  propertyType   String
-  lotSize        Float?
-  lastFetchedAt  DateTime @default(now())
-  createdAt      DateTime @default(now())
-
-  savedProperties SavedProperty[]
+  id              String         @id @default(cuid())
+  externalId      String?        @unique
+  source          String         @default("local")
+  latitude        Float
+  longitude       Float
+  price           Int
+  address         String
+  city            String
+  state           String
+  zip             String
+  propertyType    String
+  lotSize         Float?
+  lastFetchedAt   DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+  county          String?
   notes           PropertyNote[]
+  savedProperties SavedProperty?
 
   @@index([latitude, longitude])
+  @@index([externalId])
+  @@index([lastFetchedAt])
+  @@index([source])
 }
 
 model SavedProperty {
   id             String   @id @default(cuid())
   propertyId     String   @unique
-  property       Property @relation(fields: [propertyId], references: [id])
   savedAt        DateTime @default(now())
-  status         String   @default("SAVED") // SAVED, CONTACTED, OFFERED, REJECTED
+  status         String   @default("SAVED")
   personalRating Int?
+  property       Property @relation(fields: [propertyId], references: [id])
 }
 
 model PropertyNote {
   id         String   @id @default(cuid())
   propertyId String
-  property   Property @relation(fields: [propertyId], references: [id])
   content    String
   createdAt  DateTime @default(now())
+  property   Property @relation(fields: [propertyId], references: [id])
 }
 
 model CountyNote {
@@ -58,4 +57,11 @@ model CountyNote {
   createdAt DateTime @default(now())
 
   @@unique([county, state])
+}
+
+model RealtorRawCache {
+  id        Int      @id @default(autoincrement())
+  hash      String   @unique
+  payload   String
+  createdAt DateTime @default(now())
 }

@@ -1,5 +1,6 @@
 import { Property } from './propertyProvider';
 import { z } from 'zod';
+import { ValidationError } from '../errors/PropertyErrors';
 
 export const PropertySchema = z.object({
     id: z.string().optional(),
@@ -28,7 +29,7 @@ export class PropertyMapper {
      */
     static validateAndMap(externalData: unknown): Property | null {
         try {
-            const validated = PropertySchema.parse(externalData as any);
+            const validated = PropertySchema.parse(externalData);
             return {
                 id: validated.id || '',
                 externalId: validated.externalId || null,
@@ -47,10 +48,11 @@ export class PropertyMapper {
                 createdAt: validated.createdAt,
             };
         } catch (error) {
-            console.warn(`[PropertyMapper] Validation failed for record:`, {
+            const validationError = new ValidationError('Property validation failed', {
                 address: (externalData as any)?.address,
                 error: error instanceof Error ? error.message : error
             });
+            console.warn(`[PropertyMapper] ${validationError.message}:`, validationError.details);
             return null;
         }
     }

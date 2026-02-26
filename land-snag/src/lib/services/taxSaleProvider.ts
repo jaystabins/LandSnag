@@ -1,5 +1,5 @@
-import { Property, PropertyProvider, BoundingBox } from './propertyProvider';
-import { PropertyMapper } from './propertyMapper';
+import { PropertyProvider } from './propertyProvider';
+import { GeoJSONFeature } from '../types/geojson';
 
 /**
  * ExampleTaxSaleProvider implementation.
@@ -9,44 +9,49 @@ import { PropertyMapper } from './propertyMapper';
 export class ExampleTaxSaleProvider implements PropertyProvider {
     readonly providerName = 'CountyTaxSale';
 
-    async searchByBoundingBox(bounds: BoundingBox): Promise<Property[]> {
-        console.log(`[TaxSaleProvider] Fetching properties for bbox: ${JSON.stringify(bounds)}`);
+    async search(params: {
+        bbox?: [number, number, number, number];
+        city?: string;
+        state?: string;
+        zip?: string;
+    }): Promise<GeoJSONFeature[]> {
+        console.log(`[TaxSaleProvider] Fetching properties with params: ${JSON.stringify(params)}`);
         await new Promise(resolve => setTimeout(resolve, 400));
 
-        const results: unknown[] = [];
+        const features: GeoJSONFeature[] = [];
         for (let i = 0; i < 5; i++) {
-            const lat = Math.random() * (bounds.maxLat - bounds.minLat) + bounds.minLat;
-            const lng = Math.random() * (bounds.maxLng - bounds.minLng) + bounds.minLng;
-            const id = `tax_${Math.random().toString(36).substr(2, 9)}`;
+            const lat = params.bbox ? Math.random() * (params.bbox[3] - params.bbox[1]) + params.bbox[1] : 35.2271;
+            const lon = params.bbox ? Math.random() * (params.bbox[2] - params.bbox[0]) + params.bbox[0] : -80.8431;
 
-            results.push({
-                externalId: id,
-                source: this.providerName,
-                latitude: lat,
-                longitude: lng,
-                price: Math.floor(Math.random() * 100000) + 10000, // Cheaper properties
-                address: `${Math.floor(Math.random() * 9999)} Auction Way`,
-                city: 'Rural County',
-                county: 'Anson',
-                state: 'NC',
-                zip: '28001',
-                propertyType: 'VACANT_LAND',
-                lotSize: Math.random() * 10 + 2, // Larger lots
+            features.push({
+                type: 'Feature',
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [[
+                        [lon - 0.00005, lat - 0.00005],
+                        [lon + 0.00005, lat - 0.00005],
+                        [lon + 0.00005, lat + 0.00005],
+                        [lon - 0.00005, lat + 0.00005],
+                        [lon - 0.00005, lat - 0.00005]
+                    ]]
+                },
+                properties: {
+                    listing_id: `tax_${Math.random().toString(36).substr(2, 9)}`,
+                    source: this.providerName,
+                    latitude: lat,
+                    longitude: lon,
+                    price: Math.floor(Math.random() * 100000) + 10000,
+                    address: `${Math.floor(Math.random() * 9999)} Auction Way`,
+                    city: 'Rural County',
+                    county: 'Anson',
+                    state: 'NC',
+                    zip: '28001',
+                    property_type: 'VACANT_LAND',
+                    lot_size: Math.random() * 10 + 2,
+                }
             });
         }
 
-        return PropertyMapper.toInternalArray(results);
-    }
-
-    async searchByPolygon(polygon: [number, number][]): Promise<Property[]> {
-        const lngs = polygon.map(p => p[0]);
-        const lats = polygon.map(p => p[1]);
-        const bounds = {
-            minLat: Math.min(...lats),
-            maxLat: Math.max(...lats),
-            minLng: Math.min(...lngs),
-            maxLng: Math.max(...lngs),
-        };
-        return this.searchByBoundingBox(bounds);
+        return features;
     }
 }

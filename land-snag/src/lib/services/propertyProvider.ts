@@ -1,3 +1,5 @@
+import { GeoJSONFeature, GeoJSONGeometry } from '../types/geojson';
+
 export interface BoundingBox {
     minLat: number;
     maxLat: number;
@@ -25,6 +27,12 @@ export interface Property {
 
 export interface PropertyProvider {
     readonly providerName: string;
-    searchByBoundingBox(bounds: BoundingBox): Promise<Property[]>;
-    searchByPolygon(polygon: [number, number][]): Promise<Property[]>;
+    search(params: {
+        bbox?: [number, number, number, number];
+        polygon?: GeoJSONGeometry;
+        city?: string;
+        state?: string;
+        zip?: string;
+        radius?: number;
+    }): Promise<GeoJSONFeature[]>;
 }

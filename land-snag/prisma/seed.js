@@ -11,25 +11,27 @@ async function main() {
     const maxLng = -80.7;
 
     const properties = [];
-    for (let i = 0; i < 200; i++) {
-        const lat = Math.random() * (maxLat - minLat) + minLat;
-        const lng = Math.random() * (maxLng - minLng) + minLng;
-        const price = Math.floor(Math.random() * 900000) + 100000;
-        const propertyType = Math.random() > 0.5 ? 'RESIDENTIAL' : 'LAND';
+    if (process.env.SEED_MOCKS === 'true') {
+        process.stdout.write('Generating 200 mock properties...\n');
+        for (let i = 0; i < 200; i++) {
+            const lat = Math.random() * (maxLat - minLat) + minLat;
+            const lng = Math.random() * (maxLng - minLng) + minLng;
+            const price = Math.floor(Math.random() * 900000) + 100000;
+            const propertyType = Math.random() > 0.5 ? 'RESIDENTIAL' : 'LAND';
 
-        properties.push({
-            latitude: lat,
-            longitude: lng,
-            price: price,
-            address: `${Math.floor(Math.random() * 9999)} Mock St`,
-            city: 'Charlotte',
-            state: 'NC',
-            zip: '28202',
-            propertyType: propertyType,
-            lotSize: propertyType === 'LAND' ? Math.random() * 10 : null,
-        });
+            properties.push({
+                latitude: lat,
+                longitude: lng,
+                price: price,
+                address: `${Math.floor(Math.random() * 9999)} Mock St`,
+                city: 'Charlotte',
+                state: 'NC',
+                zip: '28202',
+                propertyType: propertyType,
+                lotSize: propertyType === 'LAND' ? Math.random() * 10 : null,
+            });
+        }
     }
-
     // Clear existing
     await prisma.property.deleteMany();
 

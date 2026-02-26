@@ -54,8 +54,12 @@ export default function PropertyDetailsPanel({
         try {
             const res = await fetch(`/api/properties/${propertyId}`);
             if (!res.ok) {
-                setDetails(null);
-                return;
+                if (res.status === 404) {
+                    console.warn(`Property ${propertyId} not found`);
+                    setDetails(null);
+                    return;
+                }
+                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
             }
             const data = await res.json();
             setDetails(data);
@@ -64,7 +68,7 @@ export default function PropertyDetailsPanel({
                 fetchCountyNote(data.county, data.state);
             }
         } catch (err) {
-            console.error('Failed to fetch details:', err);
+            console.error('Failed to fetch property details:', err);
             setDetails(null);
         } finally {
             setLoading(false);

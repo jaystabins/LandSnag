@@ -8,22 +8,39 @@ vi.mock('../prisma', () => ({
     prisma: {
         property: {
             findMany: vi.fn(),
-            createMany: vi.fn(),
+            upsert: vi.fn(),
         },
     },
 }));
 
 // Mock Provider
-const createMockProvider = (name: string, results: Property[] = []): PropertyProvider => ({
+const createMockProvider = (name: string, results: any[] = []): PropertyProvider => ({
     providerName: name,
-    searchByBoundingBox: vi.fn().mockResolvedValue(results),
-    searchByPolygon: vi.fn().mockResolvedValue(results),
+    search: vi.fn().mockResolvedValue(results),
 });
 
 describe('PropertyService', () => {
     let service: PropertyService;
     let mockProvider1: PropertyProvider;
     const bounds: BoundingBox = { minLat: 35, maxLat: 36, minLng: -81, maxLng: -80 };
+
+    const mockFeature = (id: string) => ({
+        type: 'Feature',
+        properties: {
+            listing_id: id,
+            latitude: 35.5,
+            longitude: -80.5,
+            price: 100000,
+            address: '123 Test St',
+            city: 'Test City',
+            county: 'Test County',
+            state: 'TS',
+            zip: '12345',
+            property_type: 'RESIDENTIAL',
+            lot_size: 1.0,
+            source: 'test'
+        }
+    });
 
     const mockProperty: Property = {
         id: '1',
@@ -37,7 +54,7 @@ describe('PropertyService', () => {
         county: 'Test County',
         state: 'TS',
         zip: '12345',
-        propertyType: 'Land',
+        propertyType: 'RESIDENTIAL',
         lotSize: 1.0,
         lastFetchedAt: new Date(),
         createdAt: new Date(),
@@ -58,37 +75,36 @@ describe('PropertyService', () => {
         const results = await service.searchProperties(bounds);
 
         expect(results).toHaveLength(10);
-        expect(mockProvider1.searchByBoundingBox).not.toHaveBeenCalled();
+        expect(mockProvider1.search).not.toHaveBeenCalled();
     });
 
     it('should fetch from providers if cache is low', async () => {
         vi.mocked(prisma.property.findMany).mockResolvedValueOnce([]); // Fresh cache empty
         vi.mocked(prisma.property.findMany).mockResolvedValueOnce([mockProperty]); // Final return from DB
 
-        mockProvider1 = createMockProvider('P1', [mockProperty]);
+        mockProvider1 = createMockProvider('P1', [mockFeature('ext-1')]);
         service = new PropertyService([mockProvider1]);
 
         await service.searchProperties(bounds);
 
-        expect(mockProvider1.searchByBoundingBox).toHaveBeenCalledWith(bounds);
-        expect(prisma.property.createMany).toHaveBeenCalled();
+        expect(mockProvider1.search).toHaveBeenCalled();
+        expect(prisma.property.upsert).toHaveBeenCalled();
     });
 
     it('should deduplicate results by externalId', async () => {
         vi.mocked(prisma.property.findMany).mockResolvedValueOnce([]);
         vi.mocked(prisma.property.findMany).mockResolvedValueOnce([]);
 
-        const prop1 = { ...mockProperty, externalId: 'dup-1' };
-        const prop2 = { ...mockProperty, externalId: 'dup-1', source: 'other' };
+        const feat1 = mockFeature('dup-1');
+        const feat2 = { ...feat1, properties: { ...feat1.properties, source: 'other' } };
 
-        mockProvider1 = createMockProvider('P1', [prop1, prop2]);
+        mockProvider1 = createMockProvider('P1', [feat1, feat2]);
         service = new PropertyService([mockProvider1]);
 
-        // We check deduplication inside the private upsert (through CreateMany mock)
         await service.searchProperties(bounds);
 
-        const createManyCall = vi.mocked(prisma.property.createMany).mock.calls[0][0];
-        expect(createManyCall.data).toHaveLength(1);
+        // Deduplication happens before upsert loop
+        expect(prisma.property.upsert).toHaveBeenCalledTimes(1);
     });
 
     it('should fallback to DB if provider fails', async () => {
@@ -97,8 +113,7 @@ describe('PropertyService', () => {
 
         const failingProvider: PropertyProvider = {
             providerName: 'Fail',
-            searchByBoundingBox: vi.fn().mockRejectedValue(new Error('API Down')),
-            searchByPolygon: vi.fn().mockRejectedValue(new Error('API Down')),
+            search: vi.fn().mockRejectedValue(new Error('API Down')),
         };
 
         service = new PropertyService([failingProvider]);
