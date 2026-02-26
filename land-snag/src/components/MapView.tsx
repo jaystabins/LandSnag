@@ -105,10 +105,13 @@ function DrawHandler({ onPolygonDraw }: { onPolygonDraw: (polygon: string | null
     return <FeatureGroup ref={featureGroupRef} />;
 }
 
+import PropertyDetailsPanel from './PropertyDetailsPanel';
+
 export default function MapView() {
     const [properties, setProperties] = useState<PropertyFeature[]>([]);
     const [bbox, setBBox] = useState<string | null>(null);
     const [polygon, setPolygon] = useState<string | null>(null);
+    const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchProperties = async () => {
@@ -130,45 +133,69 @@ export default function MapView() {
             }
         };
 
-        fetchProperties();
+        const debounceTimer = setTimeout(() => {
+            if (bbox || polygon) {
+                fetchProperties();
+            }
+        }, 400);
+
+        return () => clearTimeout(debounceTimer);
     }, [bbox, polygon]);
 
     return (
-        <div className="map-container">
-            {polygon && (
-                <div className="draw-controls">
-                    <button className="btn-clear" onClick={() => window.location.reload()}>
-                        Clear Search
-                    </button>
-                </div>
-            )}
-            <MapContainer
-                center={[35.2271, -80.8431]}
-                zoom={12}
-                style={{ height: '100%', width: '100%' }}
-            >
-                <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
-                <MapSearchHandler onBBoxChange={setBBox} />
-                <DrawHandler onPolygonDraw={setPolygon} />
-                {properties.map((p) => (
-                    <Marker key={p.id} position={[p.geometry.coordinates[1], p.geometry.coordinates[0]]}>
-                        <Popup>
-                            <div className="property-popup">
-                                <p className="property-price">${p.properties.price.toLocaleString()}</p>
-                                <h3>{p.properties.address}</h3>
-                                <p>{p.properties.city}, {p.properties.state} {p.properties.zip}</p>
-                                {p.properties.lotSize && <p>Lot Size: {p.properties.lotSize.toFixed(2)} acres</p>}
-                                <span className={`property-type type-${p.properties.propertyType}`}>
-                                    {p.properties.propertyType}
-                                </span>
-                            </div>
-                        </Popup>
-                    </Marker>
-                ))}
-            </MapContainer>
+        <div className={`main-layout ${selectedPropertyId ? 'panel-open' : ''}`}>
+            <div className="map-view-container">
+                {polygon && (
+                    <div className="draw-controls">
+                        <button className="btn-clear" onClick={() => window.location.reload()}>
+                            Clear Search
+                        </button>
+                    </div>
+                )}
+                <MapContainer
+                    center={[35.2271, -80.8431]}
+                    zoom={12}
+                    style={{ height: '100%', width: '100%' }}
+                >
+                    <TileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    />
+                    <MapSearchHandler onBBoxChange={setBBox} />
+                    <DrawHandler onPolygonDraw={setPolygon} />
+                    {properties.map((p) => (
+                        <Marker
+                            key={p.id}
+                            position={[p.geometry.coordinates[1], p.geometry.coordinates[0]]}
+                            eventHandlers={{
+                                click: () => setSelectedPropertyId(p.id)
+                            }}
+                        >
+                            <Popup>
+                                <div className="property-popup">
+                                    <p className="property-price">${p.properties.price.toLocaleString()}</p>
+                                    <h3>{p.properties.address}</h3>
+                                    <button
+                                        className="btn-view-details"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            setSelectedPropertyId(p.id);
+                                        }}
+                                    >
+                                        View Details
+                                    </button>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    ))}
+                </MapContainer>
+            </div>
+
+            <PropertyDetailsPanel
+                propertyId={selectedPropertyId}
+                onClose={() => setSelectedPropertyId(null)}
+            />
         </div>
     );
 }

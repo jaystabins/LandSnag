@@ -11,15 +11,51 @@ datasource db {
 }
 
 model Property {
-  id           String       @id @default(cuid())
-  latitude     Float
-  longitude    Float
-  price        Int
-  address      String
-  city         String
-  state        String
-  zip          String
-  propertyType String
-  lotSize      Float?
-  createdAt    DateTime     @default(now())
+  id             String   @id @default(cuid())
+  externalId     String?  @unique
+  source         String   @default("local")
+  latitude       Float
+  longitude      Float
+  price          Int
+  address        String
+  city           String
+  county         String?
+  state          String
+  zip            String
+  propertyType   String
+  lotSize        Float?
+  lastFetchedAt  DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  savedProperties SavedProperty[]
+  notes           PropertyNote[]
+
+  @@index([latitude, longitude])
+}
+
+model SavedProperty {
+  id             String   @id @default(cuid())
+  propertyId     String   @unique
+  property       Property @relation(fields: [propertyId], references: [id])
+  savedAt        DateTime @default(now())
+  status         String   @default("SAVED") // SAVED, CONTACTED, OFFERED, REJECTED
+  personalRating Int?
+}
+
+model PropertyNote {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  content    String
+  createdAt  DateTime @default(now())
+}
+
+model CountyNote {
+  id        String   @id @default(cuid())
+  county    String
+  state     String
+  content   String
+  createdAt DateTime @default(now())
+
+  @@unique([county, state])
 }

@@ -12,73 +12,178 @@ body {
   overflow: hidden;
 }
 
-.map-container {
-  height: 100vh;
+.main-layout {
+  display: flex;
   width: 100vw;
+  height: 100vh;
+  transition: all 0.3s ease;
 }
 
-.leaflet-popup-content-wrapper {
-  border-radius: 8px;
-  padding: 0;
+.map-view-container {
+  flex: 1;
+  position: relative;
+  height: 100%;
 }
 
-.leaflet-popup-content {
-  margin: 12px;
-  line-height: 1.4;
+/* Collapsible Panel */
+.details-panel {
+  width: 0;
+  height: 100%;
+  background: #fff;
+  border-left: 1px solid #ddd;
+  overflow-y: auto;
+  transition: width 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
-.property-popup {
-  font-family: inherit;
+.details-panel.open {
+  width: 400px;
 }
 
-.property-popup h3 {
+.panel-header {
+  padding: 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #2c3e50;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+}
+
+.panel-content {
+  padding: 20px;
+}
+
+.detail-section {
+  margin-bottom: 24px;
+}
+
+.detail-section h3 {
   margin: 0 0 8px 0;
-  font-size: 16px;
-  color: #333;
+  font-size: 20px;
 }
 
-.property-popup p {
-  margin: 4px 0;
-  font-size: 14px;
-  color: #666;
-}
-
-.property-price {
+.detail-section .price {
+  font-size: 24px;
   font-weight: bold;
   color: #2c3e50;
-  font-size: 18px !important;
+  margin-bottom: 8px;
 }
 
-.property-type {
+.source-tag {
   display: inline-block;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px !important;
-  text-transform: uppercase;
-  margin-top: 8px;
+  padding: 2px 8px;
   background: #eee;
+  border-radius: 12px;
+  font-size: 11px;
+  color: #666;
+  margin-top: 8px;
 }
 
-.type-RESIDENTIAL { background: #e3f2fd; color: #1976d2; }
-.type-LAND { background: #f1f8e9; color: #388e3c; }
+/* Workflow Actions */
+.workflow-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #f1f3f5;
+  border-radius: 8px;
+}
 
-.draw-controls {
-  position: absolute;
-  top: 10px;
-  left: 50px;
-  z-index: 1000;
-  background: white;
+.btn-save {
+  padding: 10px;
+  border: 1px solid #007bff;
+  background: #fff;
+  color: #007bff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.btn-save.saved {
+  background: #007bff;
+  color: #fff;
+}
+
+.status-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-selector select {
   padding: 8px;
   border-radius: 4px;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+  border: 1px solid #ccc;
 }
 
-.btn-clear {
-  background: #f44336;
+/* Notes */
+.notes-section h3 {
+  font-size: 16px;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 4px;
+}
+
+.note-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.note-input textarea {
+  height: 80px;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  resize: vertical;
+}
+
+.btn-save-county {
+  background: #17a2b8 !important;
+}
+
+.note-card {
+  padding: 12px;
+  background: #fff9db;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  border-left: 4px solid #fcc419;
+}
+
+.note-card p {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+}
+
+.note-date {
+  font-size: 11px;
+  color: #999;
+}
+
+/* Marker Actions */
+.btn-view-details {
+  margin-top: 10px;
+  width: 100%;
+  padding: 6px;
+  background: #007bff;
   color: white;
   border: none;
-  padding: 4px 8px;
-  border-radius: 2px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
 }
