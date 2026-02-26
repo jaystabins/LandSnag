@@ -1,0 +1,84 @@
+html,
+body,
+#root,
+main {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+}
+
+.map-container {
+  height: 100vh;
+  width: 100vw;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  padding: 0;
+}
+
+.leaflet-popup-content {
+  margin: 12px;
+  line-height: 1.4;
+}
+
+.property-popup {
+  font-family: inherit;
+}
+
+.property-popup h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.property-popup p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.property-price {
+  font-weight: bold;
+  color: #2c3e50;
+  font-size: 18px !important;
+}
+
+.property-type {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px !important;
+  text-transform: uppercase;
+  margin-top: 8px;
+  background: #eee;
+}
+
+.type-RESIDENTIAL { background: #e3f2fd; color: #1976d2; }
+.type-LAND { background: #f1f8e9; color: #388e3c; }
+
+.draw-controls {
+  position: absolute;
+  top: 10px;
+  left: 50px;
+  z-index: 1000;
+  background: white;
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+}
+
+.btn-clear {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 12px;
+}
